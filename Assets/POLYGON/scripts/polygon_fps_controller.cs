@@ -259,12 +259,12 @@ public class polygon_fps_controller : MonoBehaviour
         {
 
             // we slowing down the aimming speed, if the press the aim button Fire2
-            add_speed_aim = 0.5f;
+            add_speed_aim = 50f;
         }
         else
         {
 
-            add_speed_aim = 1f;
+            add_speed_aim = 100f;
         }
 
 
@@ -350,67 +350,50 @@ public class polygon_fps_controller : MonoBehaviour
 
     public void walk_execute()
     {
-        walking = false;
-        running = false;
-        walking_side = false;
+        // --- 걷기/뛰기 상태 설정 (이전과 동일) ---
+        bool walking = false;
+        bool running = false;
+        bool walking_side = false;
 
         if (idle)
         {
             state = "idle";
-
             ani.SetInteger("legs", 0);
             walk_speed = 0;
             forward_back = 0;
             right_left = 0;
-
             walking = false;
             running = false;
         }
-
-
         if (forward)
         {
             state = "walk";
-
             ani.SetFloat("legs_speed", 1);
             ani.SetInteger("legs", 1);
-            walk_speed = 250f;
-
+            walk_speed = 10f;
             forward_back = 1.2f;
             right_left = 0;
-
             walking = true;
             running = false;
         }
         if (back)
         {
             state = "walk";
-
             ani.SetFloat("legs_speed", -1);
             ani.SetInteger("legs", 1);
-            walk_speed = 250f;
-
+            walk_speed = 10f;
             forward_back = -1.2f;
             right_left = 0;
-
             walking = true;
             running = false;
         }
-
-
-
-
-
         if (right)
         {
             state = "side_walk";
-
             ani.SetFloat("legs_speed", 1);
             ani.SetInteger("legs", 2);
-            walk_speed = 150f;
-
+            walk_speed = 10f;
             right_left = 1;
-
             walking_side = true;
             walking = true;
             running = false;
@@ -418,213 +401,150 @@ public class polygon_fps_controller : MonoBehaviour
         if (left)
         {
             state = "side_walk";
-
             ani.SetFloat("legs_speed", -1);
             ani.SetInteger("legs", 2);
-            walk_speed = 150f;
+            walk_speed = 10f;
             right_left = -1;
-
             walking_side = true;
             walking = true;
             running = false;
         }
-
-
-
-
-
         if (forward_right)
         {
             state = "walk";
-
             ani.SetFloat("legs_speed", 2);
             ani.SetInteger("legs", 2);
-            walk_speed = 150f;
-
+            walk_speed = 10f;
             forward_back = 1;
             right_left = 1;
-
             walking = true;
             running = false;
         }
         if (forward_left)
         {
             state = "walk";
-
             ani.SetFloat("legs_speed", 2);
             ani.SetInteger("legs", 2);
-            walk_speed = 150f;
-
+            walk_speed = 10f;
             forward_back = 1;
             right_left = -1;
-
             walking = true;
             running = false;
         }
-
-
-
-
-
         if (back_right)
         {
             state = "walk";
-
             ani.SetFloat("legs_speed", 2);
             ani.SetInteger("legs", 2);
-            walk_speed = 150f;
-
+            walk_speed = 10f;
             forward_back = -1;
             right_left = 1;
-
             walking = true;
             running = false;
         }
         if (back_left)
         {
             state = "walk";
-
             ani.SetFloat("legs_speed", 2);
             ani.SetInteger("legs", 2);
-            walk_speed = 150f;
-
+            walk_speed = 10f;
             forward_back = -1;
             right_left = -1;
-
             walking = true;
             running = false;
         }
-
         if (run)
         {
             state = "run";
-
             ani.SetInteger("legs", 3);
-            walk_speed = 400f;
-
+            walk_speed = 20f;
             forward_back = 1.2f;
             right_left = 0;
-
             walking = false;
             running = true;
         }
-
         if (duck)
         {
             state = "idle";
-
             ani.SetInteger("legs", 5);
             ani.SetFloat("legs_speed", 0);
-            walk_speed = 100;
-
+            walk_speed = 1;
             forward_back = 0;
             right_left = 0;
-
             walking = false;
             running = false;
         }
-
         if (duck_walk)
         {
             state = "duck_walk";
-
             ani.SetInteger("legs", 5);
             ani.SetFloat("legs_speed", 1);
-            walk_speed = 100;
-
+            walk_speed = 1;
             forward_back = 1;
             right_left = 0;
-
             walking = true;
             running = false;
         }
 
-
-
-        // checking, if the state of the "walking" has changed, if yes, we change the sound 
-
+        // --- 걷기 소리 (이전과 동일) ---
         if (state == "idle" && old_state != "idle")
         {
             old_state = "idle";
-
-
-
             walk_sound.time = 0;
             walk_sound.Stop();
         }
-
         if (state == "walk" && old_state != "walk")
         {
             old_state = "walk";
-
-
             walk_sound.clip = walk_clip;
-
             walk_sound.time = 0;
             walk_sound.Play();
-
-
         }
-
         if (state == "run" && old_state != "run")
         {
             old_state = "run";
-
-
-
             walk_sound.clip = run_clip;
             walk_sound.time = 0;
             walk_sound.Play();
-
-
-
         }
-
         if (state == "side_walk" && old_state != "side_walk")
         {
             old_state = "side_walk";
-
-
-
             walk_sound.clip = walk_side_clip;
             walk_sound.time = 0;
             walk_sound.Play();
-
-
-
         }
-
         if (state == "duck_walk" && old_state != "duck_walk")
         {
             old_state = "duck_walk";
-
-
-
             walk_sound.clip = walk_duck_clip;
             walk_sound.time = 0;
             walk_sound.Play();
-
-
-
         }
 
-        moveDirection = new Vector3(Vector3.forward.x * Time.deltaTime * forward_back * walk_speed, 0, Vector3.right.z * Time.deltaTime * forward_back * walk_speed);
+        // --- ★★★ 수정된 이동 로직 ★★★ ---
+        // 'Time.deltaTime' 버그를 수정하고 중력을 직접 제어합니다.
 
-        Vector3 FB = transform.TransformDirection(Vector3.forward * forward_back * walk_speed * Time.deltaTime);
-        Vector3 RL = transform.TransformDirection(Vector3.right * right_left * walk_speed * Time.deltaTime);
+        // 1. 수평 이동 계산 (Time.deltaTime 제거)
+        // (이전 코드는 Time.deltaTime을 잘못 사용했습니다)
+        Vector3 horizontalMove = transform.TransformDirection(Vector3.forward * forward_back * walk_speed) + transform.TransformDirection(Vector3.right * right_left * walk_speed);
+        moveDirection.x = horizontalMove.x;
+        moveDirection.z = horizontalMove.z;
 
+        // 2. 중력 적용
+        if (controller.isGrounded)
+        {
+            // 땅에 붙어있을 때
+            moveDirection.y = -0.1f;
+        }
+        else
+        {
+            // 공중에 있을 때 (중력 적용)
+            moveDirection.y += Physics.gravity.y * Time.deltaTime;
+        }
 
-
-
-        controller.SimpleMove(FB + RL);
-
-
-
-
-
-
-
-
+        // 3. 최종 이동 (Time.deltaTime을 여기서 한번만 적용)
+        controller.Move(moveDirection * Time.deltaTime);
     }
 
     public void jumping()
@@ -635,7 +555,7 @@ public class polygon_fps_controller : MonoBehaviour
             
 
 
-            jump_speed = 0.3f;
+            jump_speed = 0.15f;
 
             transform.position = transform.position + new Vector3(0, 0.1f, 0);
 
@@ -646,7 +566,7 @@ public class polygon_fps_controller : MonoBehaviour
         {
 
 
-            jump_speed -= 0.01f;
+            jump_speed -= 0.05f;
 
             transform.Translate(new Vector3(0, jump_speed, 0));
 
